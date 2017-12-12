@@ -6,6 +6,10 @@
   "scripts": {
     "start": "node index"
   },
+  "engines": {
+    "node": ">8.0.0"
+  },
+  "engineStrict": true,
   "bin": {
     "gitkatt": "./index.js"
   },
