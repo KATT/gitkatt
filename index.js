@@ -2,7 +2,6 @@ const { readFileSync } = require('fs');
 const { promisify } = require('util');
 const exec = promisify(require('child_process').exec);
 const moment = require('moment');
-const _ = require('lodash');
 const GitHub = require('github');
 const ProgressBar = require('progress');
 
@@ -70,9 +69,7 @@ async function main() {
     x++;
   }
 
-  const sensible = _.sortBy(painting, 'date');
-
-  const cmds = sensible.reduce((res, { date, char }) => {
+  const cmds = painting.reduce((res, { date, char }) => {
     if (char !== ' ') {
       const content = `${date.format('YYYY-MM-DD')} ${Math.random()}`;
       const cmd = `echo '${content}' >> meow && git add meow && git commit --date='${date.toJSON()}' -m '🐱'`;
