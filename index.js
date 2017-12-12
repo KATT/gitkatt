@@ -8,7 +8,7 @@ const ProgressBar = require('progress');
 
 const OWNER = 'KATT';
 const REPO = 'gitkatt-child-repo';
-const START_DATE = '2016-12-18';
+const START_DATE = '2016-12-25';
 const NUM_COMMITS = 25;
 
 function getMomentForPosition(x, y, refDate) {
