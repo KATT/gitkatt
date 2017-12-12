@@ -101,7 +101,7 @@ async function main() {
     }
 
     await exec(
-      `cd child-repo && git remote add origin git@github.com:KATT/gitkatt-child-repo.git && git push origin master --force`
+      `cd child-repo && git remote add origin git@github.com:${GITHUB_USER}/${GITHUB_REPO}.git && git push origin master --force`
     );
   }
 }
