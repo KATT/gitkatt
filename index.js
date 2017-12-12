@@ -12,7 +12,7 @@ const GITHUB_REPO = process.env.GITHUB_REPO || 'gitkatt-child-repo';
 
 const DRAW_START_DATE = process.env.DRAW_START_DATE || '2016-12-25';
 const NUM_COMMITS = 50; // the more the darker
-const ART = readFileSync('./meow').toString();
+const ART = readFileSync('./art').toString();
 
 function getMomentForPosition(x, y, refDate) {
   return moment(refDate)
