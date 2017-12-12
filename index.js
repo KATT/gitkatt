@@ -1,17 +1,16 @@
-const { readFileSync } = require('fs');
+#!/usr/bin/env node
+
+const { readFileSync, existsSync } = require('fs');
+
 const { promisify } = require('util');
 const exec = promisify(require('child_process').exec);
 const moment = require('moment');
+const { prompt } = require('inquirer');
 const GitHub = require('github');
 const ProgressBar = require('progress');
 
-const GITHUB_USER = process.env.GITHUB_USER || 'KATT';
-const GITHUB_API_TOKEN = process.env.GITHUB_API_TOKEN || '';
-const GITHUB_REPO = process.env.GITHUB_REPO || 'gitkatt-child-repo';
-
 const DRAW_START_DATE = process.env.DRAW_START_DATE || '2017-02-26';
 const NUM_COMMITS = 50; // the more the darker
-const ART = readFileSync('./art').toString();
 
 function getMomentForPosition(x, y, refDate) {
   return moment(refDate)
@@ -20,10 +19,7 @@ function getMomentForPosition(x, y, refDate) {
     .hour(12);
 }
 
-async function recreateRepo() {
-  if (!GITHUB_API_TOKEN) {
-    throw new Error(`Missing env var 'GITHUB_API_TOKEN'`);
-  }
+async function recreateRepo({ GITHUB_API_TOKEN, GITHUB_REPO, GITHUB_USER }) {
   // removing the repo removes the dots from the graph
   const github = new GitHub();
   github.authenticate({
@@ -47,13 +43,11 @@ async function recreateRepo() {
   });
 }
 
-async function main() {
-  console.log(ART);
-
+function paintingToCoords(art) {
   const painting = [];
   let x = 0,
     y = 0;
-  for (const char of ART) {
+  for (const char of art) {
     if (char === '\n') {
       y++;
       x = 0;
@@ -70,6 +64,61 @@ async function main() {
     x++;
   }
 
+  return painting;
+}
+
+async function main() {
+  const questions = [
+    {
+      type: 'input',
+      name: 'GITHUB_USER',
+      message: 'GitHub username',
+      default: process.env.GITHUB_USER,
+      validate: val => !!val,
+    },
+    {
+      type: 'input',
+      name: 'GITHUB_API_TOKEN',
+      message: 'GitHub API Token',
+      default: process.env.GITHUB_API_TOKEN,
+      validate: val => val.length > 10 || 'Enter a valid API TOKEN',
+    },
+    {
+      type: 'input',
+      name: 'ART_FILENAME',
+      message: 'Filename for art',
+      default: process.env.ART_FILENAME,
+      validate: val => existsSync(`./${val}`) || 'Enter an existing file',
+    },
+    {
+      type: 'input',
+      name: 'GITHUB_REPO',
+      message: 'Repository name',
+      default: process.env.GITHUB_REPO || 'gitkatt-child-repo',
+      validate: val => !!val,
+    },
+    {
+      type: 'input',
+      name: 'DRAW_START_DATE',
+      message: 'Start date for drawing',
+      default: process.env.DRAW_START_DATE,
+      validate: val => moment(val).isoWeekday() === 7 || 'Needs to be a Sunday',
+    },
+  ];
+
+  const {
+    GITHUB_USER,
+    GITHUB_API_TOKEN,
+    GITHUB_REPO,
+    DRAW_START_DATE,
+    ART_FILENAME,
+  } = await prompt(questions);
+
+  const ART = readFileSync('./art').toString();
+
+  console.log(ART);
+  const painting = paintingToCoords(ART);
+
   const cmds = painting.reduce((res, { date, char }) => {
     if (char !== ' ') {
       const content = `${date.format('YYYY-MM-DD')} ${Math.random()}`;
@@ -80,17 +129,29 @@ async function main() {
     return res;
   }, []);
 
-  const bar = new ProgressBar('Creating history [:bar] :percent :etas', {
+  const bar = new ProgressBar('Creating initial layer', {
     complete: '=',
     incomplete: ' ',
     width: 20,
     total: NUM_COMMITS * cmds.length,
   });
 
-  await recreateRepo();
+  await recreateRepo({ GITHUB_API_TOKEN, GITHUB_USER, GITHUB_REPO });
+
   // recreate repo a few times to have more history (makes it darker)
   for (let i = 0; i < NUM_COMMITS; i++) {
-    bar.tick();
+    if (i === 1) {
+      process.stderr.cursorTo(0);
+      process.stderr.write(
+        `Now viewable at your GitHub - https://github.com/${GITHUB_USER}`
+      );
+      process.stderr.clearLine(1);
+      process.stderr.write('\n');
+    }
+    let state =
+      i > 0 ? `Darkening (${i}/${NUM_COMMITS - 1})` : 'Creating initial layer';
+    bar.fmt = `${state} [:bar] :percent :etas`;
+
     await exec(
       `rm -rf ./generated-repo && mkdir ./generated-repo && cd ./generated-repo && git init`
     );
@@ -103,6 +164,7 @@ async function main() {
     await exec(
       `cd ./generated-repo && git remote add origin git@github.com:${GITHUB_USER}/${GITHUB_REPO}.git && git push origin master --force`
     );
+    bar.tick();
   }
 }
 

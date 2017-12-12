@@ -6,10 +6,14 @@
   "scripts": {
     "start": "node index"
   },
+  "bin": {
+    "gitkatt": "npm start"
+  },
   "author": "KATT",
   "license": "MIT",
   "dependencies": {
     "github": "^13.0.1",
+    "inquirer": "^4.0.1",
     "moment": "^2.19.4",
     "progress": "^2.0.0"
   },
