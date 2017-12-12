@@ -4,12 +4,20 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node index"
+    "start": "node index"
   },
   "author": "KATT",
   "license": "MIT",
   "dependencies": {
-    "ts-node": "^4.0.1",
-    "typescript": "^2.6.2"
+    "github": "^13.0.1",
+    "lodash": "^4.17.4",
+    "moment": "^2.19.4",
+    "progress": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/github": "^7.1.0",
+    "@types/lodash": "^4.14.88",
+    "@types/moment": "^2.13.0",
+    "@types/progress": "^2.0.0"
   }
 }
