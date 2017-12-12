@@ -9,7 +9,6 @@ const { prompt } = require('inquirer');
 const GitHub = require('github');
 const ProgressBar = require('progress');
 
-const DRAW_START_DATE = process.env.DRAW_START_DATE || '2017-02-26';
 const NUM_COMMITS = 50; // the more the darker
 
 function getMomentForPosition(x, y, refDate) {
@@ -43,7 +42,7 @@ async function recreateRepo({ GITHUB_API_TOKEN, GITHUB_REPO, GITHUB_USER }) {
   });
 }
 
-function paintingToCoords(art) {
+function paintingToCoords(art, refDate) {
   const painting = [];
   let x = 0,
     y = 0;
@@ -57,7 +56,7 @@ function paintingToCoords(art) {
       throw new Error('Too many lines in art (max 7 rows).');
     }
 
-    const date = getMomentForPosition(x, y, DRAW_START_DATE);
+    const date = getMomentForPosition(x, y, refDate);
 
     painting.push({ date, char });
 
@@ -117,7 +116,7 @@ async function main() {
   const ART = readFileSync('./art').toString();
 
   console.log(ART);
-  const painting = paintingToCoords(ART);
+  const painting = paintingToCoords(ART, DRAW_START_DATE);
 
   const cmds = painting.reduce((res, { date, char }) => {
     if (char !== ' ') {
