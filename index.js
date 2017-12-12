@@ -6,10 +6,13 @@ const _ = require('lodash');
 const GitHub = require('github');
 const ProgressBar = require('progress');
 
-const OWNER = 'KATT';
-const REPO = 'gitkatt-child-repo';
-const START_DATE = '2016-12-25';
-const NUM_COMMITS = 25;
+const GITHUB_USER = process.env.GITHUB_USER || 'KATT';
+const GITHUB_API_TOKEN = process.env.GITHUB_API_TOKEN || '';
+const GITHUB_REPO = process.env.GITHUB_REPO || 'gitkatt-child-repo';
+
+const DRAW_START_DATE = process.env.DRAW_START_DATE || '2016-12-25';
+const NUM_COMMITS = 50; // the more the darker
+const ART = readFileSync('./meow').toString();
 
 function getMomentForPosition(x, y, refDate) {
   return moment(refDate)
@@ -19,22 +22,21 @@ function getMomentForPosition(x, y, refDate) {
 }
 
 async function recreateRepo() {
-  // removing the history removes the dots from the graph
-
+  // removing the repo removes the dots from the graph
   const github = new GitHub();
   github.authenticate({
     type: 'token',
-    token: process.env.GITHUB_API_TOKEN,
+    token: GITHUB_API_TOKEN,
   });
 
   try {
     await github.repos.delete({
-      owner: OWNER,
-      repo: REPO,
+      owner: GITHUB_USER,
+      repo: GITHUB_REPO,
     });
   } catch (err) {}
   await github.repos.create({
-    name: REPO,
+    name: GITHUB_REPO,
   });
 }
 
@@ -42,7 +44,6 @@ async function main() {
   if (process.env.GITHUB_API_TOKEN) {
     await recreateRepo();
   }
-  const ART = readFileSync('./meow').toString();
 
   const painting = [];
   let x = 0,
@@ -53,9 +54,8 @@ async function main() {
       x = 0;
       continue;
     }
-    const position = { x, y };
 
-    const date = getMomentForPosition(x, y, START_DATE);
+    const date = getMomentForPosition(x, y, DRAW_START_DATE);
 
     painting.push({ date, char });
 
@@ -65,15 +65,12 @@ async function main() {
   console.log(ART);
 
   const sensible = _.sortBy(painting, 'date');
-  //   console.log(sensible);
 
   const cmds = sensible.reduce((res, { date, char }) => {
     if (char !== ' ') {
-      const cmd = `echo '${date.format(
-        'YYYY-MM-DD'
-      )} ${Math.random()}' >> meow && git add meow && git commit --date='${date.toJSON()}' -m '🐱'`;
+      const content = `${date.format('YYYY-MM-DD')} ${Math.random()}`;
+      const cmd = `echo '${content}' >> meow && git add meow && git commit --date='${date.toJSON()}' -m '🐱'`;
 
-      //   console.log(additions);
       return [...res, cmd];
     }
     return res;
@@ -85,7 +82,8 @@ async function main() {
     width: 20,
     total: NUM_COMMITS * cmds.length,
   });
-  // init repo a few times two have more history (makes it darker)
+
+  // recreate repo a few times to have more history (makes it darker)
   for (let i = 0; i < NUM_COMMITS; i++) {
     bar.tick();
     await exec(
