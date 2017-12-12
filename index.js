@@ -46,7 +46,7 @@ async function recreateRepo() {
 }
 
 async function main() {
-  await recreateRepo();
+  console.log(ART);
 
   const painting = [];
   let x = 0,
@@ -57,6 +57,9 @@ async function main() {
       x = 0;
       continue;
     }
+    if (y > 6) {
+      throw new Error('Too many lines in art (max 7 rows).');
+    }
 
     const date = getMomentForPosition(x, y, DRAW_START_DATE);
 
@@ -64,8 +67,6 @@ async function main() {
 
     x++;
   }
-
-  console.log(ART);
 
   const sensible = _.sortBy(painting, 'date');
 
@@ -86,6 +87,7 @@ async function main() {
     total: NUM_COMMITS * cmds.length,
   });
 
+  await recreateRepo();
   // recreate repo a few times to have more history (makes it darker)
   for (let i = 0; i < NUM_COMMITS; i++) {
     bar.tick();
