@@ -10,7 +10,7 @@ const GITHUB_USER = process.env.GITHUB_USER || 'KATT';
 const GITHUB_API_TOKEN = process.env.GITHUB_API_TOKEN || '';
 const GITHUB_REPO = process.env.GITHUB_REPO || 'gitkatt-child-repo';
 
-const DRAW_START_DATE = process.env.DRAW_START_DATE || '2016-12-25';
+const DRAW_START_DATE = process.env.DRAW_START_DATE || '2017-02-26';
 const NUM_COMMITS = 50; // the more the darker
 const ART = readFileSync('./art').toString();
 
@@ -22,28 +22,31 @@ function getMomentForPosition(x, y, refDate) {
 }
 
 async function recreateRepo() {
+  if (!GITHUB_API_TOKEN) {
+    throw new Error(`Missing env var 'GITHUB_API_TOKEN'`);
+  }
   // removing the repo removes the dots from the graph
   const github = new GitHub();
   github.authenticate({
     type: 'token',
     token: GITHUB_API_TOKEN,
   });
-
   try {
     await github.repos.delete({
       owner: GITHUB_USER,
       repo: GITHUB_REPO,
     });
-  } catch (err) {}
+  } catch (err) {
+    // prob 404
+  }
+
   await github.repos.create({
     name: GITHUB_REPO,
   });
 }
 
 async function main() {
-  if (process.env.GITHUB_API_TOKEN) {
-    await recreateRepo();
-  }
+  await recreateRepo();
 
   const painting = [];
   let x = 0,
