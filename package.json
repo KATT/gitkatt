@@ -1,0 +1,15 @@
+{
+  "name": "gitkatt",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node index"
+  },
+  "author": "KATT",
+  "license": "MIT",
+  "dependencies": {
+    "ts-node": "^4.0.1",
+    "typescript": "^2.6.2"
+  }
+}
