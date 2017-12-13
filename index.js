@@ -104,7 +104,7 @@ async function main() {
     },
     {
       type: 'input',
-      name: 'ART',
+      name: 'ART_FILENAME',
       message: 'Filename for art',
       default: process.env.ART_FILENAME || 'art',
       validate: val => existsSync(`./${val}`) || 'Enter an existing file',
@@ -142,7 +142,7 @@ async function main() {
     NUM_LAYERS,
   } = await prompt(questions);
 
-  const ART = readFileSync('./art').toString();
+  const ART = readFileSync(`./${ART_FILENAME}`).toString();
 
   console.log(ART);
 
