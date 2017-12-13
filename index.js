@@ -40,10 +40,10 @@ async function recreateRepo({ GITHUB_API_TOKEN, GITHUB_REPO, GITHUB_USER }) {
         owner: GITHUB_USER,
         repo: GITHUB_REPO,
       }));
+    console.log(`✅  Deleted repo ${GITHUB_USER}:${GITHUB_REPO}`);
   } catch (err) {
     // prob 404
   }
-  console.log(`✅  Deleted repo ${GITHUB_USER}:${GITHUB_REPO}`);
   !DRY_RUN &&
     (await github.repos.create({
       name: GITHUB_REPO,
@@ -127,7 +127,7 @@ async function main() {
       type: 'input',
       name: 'NUM_LAYERS',
       message: 'Number of layers to draw',
-      default: process.env.NUM_LAYERS || 50,
+      default: process.env.NUM_LAYERS || 30,
       filter: val => parseInt(val),
       validate: val => (val > 0 && val < 100) || 'Needs to be 1-100',
     },
@@ -148,54 +148,41 @@ async function main() {
 
   const painting = paintingToCoords(ART, DRAW_START_DATE);
 
-  const cmds = painting.reduce((res, { date, char }) => {
-    if (char !== ' ') {
-      const content = `${date.format('YYYY-MM-DD')} ${Math.random()}`;
-      const cmd = `echo '${
-        content
-      }' >> meow && git add meow && git commit --date='${date.toJSON()}' -m '🐱'`;
-
-      return [...res, cmd];
-    }
-    return res;
-  }, []);
-
-  const bar = new ProgressBar('Creating initial layer', {
+  const bar = new ProgressBar('🚧  Creating git history :percent :etas', {
     complete: '=',
     incomplete: ' ',
     width: 20,
-    total: NUM_LAYERS * cmds.length,
+    total: NUM_LAYERS * painting.length,
   });
-
-  await recreateRepo({ GITHUB_API_TOKEN, GITHUB_USER, GITHUB_REPO });
-
   // recreate repo a few times to have more history (makes it darker)
+  await exec(
+    `rm -rf ./generated-repo && mkdir ./generated-repo && cd ./generated-repo && git init`,
+  );
   for (let i = 0; i < NUM_LAYERS; i++) {
-    if (i === 1) {
-      const url = `https://github.com/${GITHUB_USER}`;
-      process.stderr.cursorTo(0);
-      process.stderr.clearLine(1);
-      process.stderr.write(`✅  Now viewable on your GitHub - ${url}\n`);
-    }
-    let state =
-      i > 0 ? `Darkening (${i}/${NUM_LAYERS})` : 'Creating initial layer';
-    bar.fmt = `🚧  ${state} [:bar] :percent :etas`;
-
-    await exec(
-      `rm -rf ./generated-repo && mkdir ./generated-repo && cd ./generated-repo && git init`,
-    );
-
-    for (const cmd of cmds) {
+    for (const { date, char } of painting) {
       bar.tick();
+      if (char === ' ') {
+        continue;
+      }
+      const d = date
+        .clone()
+        .add(Math.random() * 60, 'm')
+        .add(Math.random() * 60, 's');
+      const content = `${d.format('YYYY-MM-DD')} ${Math.random()}`;
+      const cmd = `echo '${
+        content
+      }' >> meow && git add meow && git commit --date='${d.toJSON()}' -m '🐱'`;
+
       await exec(`cd ./generated-repo && ${cmd}`);
     }
-
-    await exec(
-      `cd ./generated-repo && git remote add origin git@github.com:${
-        GITHUB_USER
-      }/${GITHUB_REPO}.git && git push origin master --force`,
-    );
   }
+
+  await recreateRepo({ GITHUB_API_TOKEN, GITHUB_USER, GITHUB_REPO });
+  await exec(
+    `cd ./generated-repo && git remote add origin git@github.com:${
+      GITHUB_USER
+    }/${GITHUB_REPO}.git && git push origin master --force`,
+  );
 }
 
 main()
