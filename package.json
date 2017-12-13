@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node index"
   },
+  "files": ["index.js", "art"],
   "engines": {
     "node": ">8.0.0"
   },
