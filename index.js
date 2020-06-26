@@ -156,7 +156,7 @@ async function main() {
   });
   // recreate repo a few times to have more history (makes it darker)
   await exec(
-    `rm -rf ./generated-repo && mkdir ./generated-repo && cd ./generated-repo && git init`,
+    `rm -rf ./generated-repo && mkdir ./generated-repo && cd ./generated-repo && git init && git checkout -b main`,
   );
   for (let i = 0; i < NUM_LAYERS; i++) {
     for (const { date, char } of painting) {
