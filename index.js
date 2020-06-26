@@ -181,7 +181,7 @@ async function main() {
   await exec(
     `cd ./generated-repo && git remote add origin git@github.com:${
       GITHUB_USER
-    }/${GITHUB_REPO}.git && git push origin master --force`,
+    }/${GITHUB_REPO}.git && git push origin main --force`,
   );
 }
 
