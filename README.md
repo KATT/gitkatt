@@ -35,6 +35,6 @@ export ART_FILENAME='art'
 
 ### Notes
 
-The longer you let it run the darker your dots become. 
+- Every time you run it it will delete (clears the graph) and create a repo called `gitkatt-child-repo` ([Example repo](https://github.com/KATT/gitkatt-child-repo)).
+- The more layers you choose, the longer it'll run, & the darker your dots become. 
 
-Every time you run it it will delete (clears the graph) and create a repo called `gitkatt-child-repo` ([Example repo](https://github.com/KATT/gitkatt-child-repo)).
